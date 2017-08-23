@@ -1,6 +1,5 @@
 /**
  * BirdWhisperer
- * by 2gua
  */
 import './assets/index.css';
 
@@ -10,8 +9,8 @@ class BirdWhisperer {
         this.chirping = message;
     }
     chirp() {
-        return 'Ah~ oh~ ' + this.chirping;
+        return 'Welcome ' + this.chirping;
     }
 }
-let birdWhisperer = new BirdWhisperer('coo-coo-coo...');
-document.body.innerHTML = birdWhisperer.chirp();
+let birdWhisperer = new BirdWhisperer('hello world.');
+document.getElementById("app-desc").innerHTML = birdWhisperer.chirp();

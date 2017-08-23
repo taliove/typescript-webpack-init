@@ -20,33 +20,23 @@ var async = require("async")
 
 var HtmlWebpackPlugin = require('html-webpack-plugin')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
+var CopyWebpackPlugin = require('copy-webpack-plugin')
+var project = require("./project");
+var project_name = project.project_name;
+var projects = project.projects;
 
-var argv;
-try {
-    argv = JSON.parse(process.env.npm_config_argv).original;
-} catch (ex) {
-    argv = process.argv;
-}
-var project_name = "";
-var projects = [];
-if (argv && argv.length >= 3) {
-    project_name = argv[2];
-    var project_path = path.resolve(__dirname, '../src/projects/' + project_name + '/index.ts');
-    if (!fs.existsSync(project_path)) {
-        console.log(chalk.red('  项目「' + project_name + '」不存在，请检查项目名称。具体名称参见 src/projects/。\n'))
-        return;
-    }
-} else {
-    projects = fs.readdirSync(path.resolve(__dirname, '../src/projects'));
-    if (!projects || projects.length === 0) {
-        console.log(chalk.red('  在目录 src/projects/ 中未找到项目。\n'))
-        return;
-    }
-}
-
+/**
+ * 编译单个项目
+ * @param {string} item 项目名称
+ * @param {function} callback 回调结果
+ */
 var buildItem = function (item, callback) {
-    var app_entry = path.resolve(__dirname, '../src/projects/' + item + '/index.ts');
-    var app_html_entry = path.resolve(__dirname, '../src/projects/' + item + '/index.html');
+    var app_dir = "../src/projects/" + item;
+    var app_entry = path.resolve(__dirname, app_dir + '/index.ts');
+    var app_html_entry = path.resolve(__dirname, app_dir + '/index.html');
+    var app_config_entry = path.resolve(__dirname, app_dir + '/config.json');
+    var app_config = project.get_config(item);
+
     if (!fs.existsSync(app_entry)) {
         // throw '  游戏「' + item + '」入口文件 index.js 不存在，请检查项目。\n';
         console.log(chalk.red('\n  项目「' + item + '」入口文件 index.ts 不存在，请检查项目。'));
@@ -63,45 +53,56 @@ var buildItem = function (item, callback) {
         }
         return true;
     }
+    var plugins = [
+        new ExtractTextPlugin({
+            filename: path.posix.join(item, '/css/' + app_config['css-name'])
+        }),
+        new HtmlWebpackPlugin({
+            filename: path.resolve(__dirname, '../dist/' + item + '/index.html'),
+            template: app_html_entry,
+            inject: true,
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+                removeAttributeQuotes: true
+                // more options:
+                // https://github.com/kangax/html-minifier#options-quick-reference
+            },
+            // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+            chunksSortMode: 'dependency'
+        })
+    ];
+    var static_entry = path.resolve(__dirname, app_dir + '/static');
+    if (fs.existsSync(static_entry)) {
+        plugins.push(new CopyWebpackPlugin([
+            {
+                from: static_entry,
+                to: path.resolve(__dirname, '../dist/' + item + '/static'),
+                ignore: ['.*']
+            }
+        ]));
+    }
+
     var currentWebpackConfig = merge(webpackConfig, {
         entry: {
             app: app_entry
         },
         output: {
-            filename: path.posix.join(item, '/js/[name].[chunkhash:8].js')
+            filename: path.posix.join(item, '/js/' + app_config['js-name'])
         },
-        plugins: [
-            new ExtractTextPlugin({
-                filename: path.posix.join(item, '/css/[name].[contenthash:8].css')
-            }),
-            new HtmlWebpackPlugin({
-                filename: path.resolve(__dirname, '../dist/' + item + '/index.html'),
-                template: app_html_entry,
-                inject: true,
-                minify: {
-                    removeComments: true,
-                    collapseWhitespace: true,
-                    removeAttributeQuotes: true
-                    // more options:
-                    // https://github.com/kangax/html-minifier#options-quick-reference
-                },
-                // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-                chunksSortMode: 'dependency'
-            })
-        ]
+        plugins: plugins
     });
     console.log(chalk.yellow('\n  正在编译项目「' + item + '」'));
     console.log(chalk.yellow('\n  入口「' + app_entry + '」'));
-
     webpack(currentWebpackConfig, function (err, stats) {
         if (err) throw err
-        // process.stdout.write(stats.toString({
-        //         colors: true,
-        //         modules: false,
-        //         children: false,
-        //         chunks: false,
-        //         chunkModules: false
-        //     }) + '\n\n')
+        process.stdout.write(stats.toString({
+            colors: true,
+            modules: false,
+            children: false,
+            chunks: false,
+            chunkModules: false
+        }) + '\n\n')
         console.log(chalk.cyan('  项目[' + item + ']编译完成。用时：' + (stats.endTime - stats.startTime) + 'ms\n'))
         if (callback) {
             callback();
@@ -110,12 +111,13 @@ var buildItem = function (item, callback) {
     return true;
 }
 
+var spinner = ora('正在编译，请稍候...')
+
 var build = function (items, cb) {
-    spinner.start()
     async.eachSeries(items, function (item, callback) {
         buildItem(item, callback);
     }, function (err) {
-        spinner.stop();
+        // spinner.stop();
         if (err) {
             console.log(chalk.red("  错误:" + err));
         } else {
@@ -124,14 +126,12 @@ var build = function (items, cb) {
                 '  直接打开 index.html 文件无效。\n'
             ))
         }
-        spinner.stop();
+        // spinner.stop();
         if (cb) {
             cb(err);
         }
     })
 }
-
-var spinner = ora('正在编译，请稍候...')
 
 async.waterfall([
     function (cb) {

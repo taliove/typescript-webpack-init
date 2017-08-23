@@ -1,5 +1,7 @@
 require('./check-versions')()
 
+var project = require('./project')
+var project_config = project.get_config();
 var config = require('../config')
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
@@ -12,7 +14,7 @@ var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
 // default port where dev server listens for incoming traffic
-var port = process.env.PORT || config.dev.port
+var port = project_config.port || process.env.PORT || config.dev.port
 // automatically open browser, if not set will be false
 var autoOpenBrowser = !!config.dev.autoOpenBrowser
 // Define HTTP proxies to your custom API backend
@@ -28,7 +30,7 @@ var devMiddleware = require('webpack-dev-middleware')(compiler, {
 })
 
 var hotMiddleware = require('webpack-hot-middleware')(compiler, {
-  log: () => {}
+  log: () => { }
 })
 // force page reload when html-webpack-plugin template changes
 compiler.plugin('compilation', function (compilation) {
@@ -58,8 +60,9 @@ app.use(devMiddleware)
 app.use(hotMiddleware)
 
 // serve pure static assets
-var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
-app.use(staticPath, express.static('./static'))
+var staticPath = project.get_static_path()// path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
+console.log("\n  资源路径：" + staticPath)
+app.use("/static", express.static(staticPath))
 
 var uri = 'http://localhost:' + port
 
