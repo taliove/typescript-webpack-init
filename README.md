@@ -4,7 +4,9 @@
 
 ## 使用说明
 
-在目录`src/projects`中新增项目名称，例如`test`，在其目录下创建入口文件：`index.ts`及`index.html`即可
+1. 克隆仓库
+2. 在根目录下执行`npm intsall`
+3. 在目录`src/projects`中新增项目名称，例如`test`，在其目录下创建入口文件：`index.ts`及`index.html`即可
 
 ## 命令
 
@@ -17,5 +19,10 @@
 ## 生成目录
 
 所有项目都生成在目录`./dist/`下。
+
+## 感谢
+
+- [vue](https://github.com/vuejs/vue)
+- [webpack](https://github.com/webpack/webpack)
 
 enjoy it.
