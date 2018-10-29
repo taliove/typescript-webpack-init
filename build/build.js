@@ -55,7 +55,7 @@ var buildItem = function (item, callback) {
     }
     var plugins = [
         new ExtractTextPlugin({
-            filename: path.posix.join(item, '/css/' + app_config['css-name'])
+            filename: path.posix.join(config.build.assetsSubDirectory, '/css/', app_config['css-name'])
         }),
         new HtmlWebpackPlugin({
             filename: path.resolve(__dirname, '../dist/' + item + '/index.html'),
@@ -64,7 +64,12 @@ var buildItem = function (item, callback) {
             minify: {
                 removeComments: true,
                 collapseWhitespace: true,
-                removeAttributeQuotes: true
+                removeAttributeQuotes: true,
+                minifyCSS: true,
+                minifyJS: true,
+                meta: {
+                    viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no'
+                }
                 // more options:
                 // https://github.com/kangax/html-minifier#options-quick-reference
             },
@@ -88,7 +93,8 @@ var buildItem = function (item, callback) {
             app: app_entry
         },
         output: {
-            filename: path.posix.join(item, '/js/' + app_config['js-name'])
+            filename: path.posix.join(config.build.assetsSubDirectory, '/js/', app_config['js-name']),
+            path: path.resolve(__dirname, '../dist', item)
         },
         plugins: plugins
     });
@@ -166,12 +172,3 @@ async.waterfall([
         console.log(chalk.red(err));
     }
 });
-
-// rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
-//     if (err) throw err
-//     if (game) {
-//         //  单项时
-//         games = [game];
-//     }
-//     build(games);
-// })
