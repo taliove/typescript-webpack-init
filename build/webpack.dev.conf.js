@@ -9,36 +9,19 @@ var HtmlWebpackPlugin = require('html-webpack-plugin')
 var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 var CopyWebpackPlugin = require('copy-webpack-plugin')
 var chalk = require("chalk");
+var project = require("./project")
+var project_name = project.project_name
 
-var argv;
-try {
-    argv = JSON.parse(process.env.npm_config_argv).original;
-} catch (ex) {
-    argv = process.argv;
-}
-var project = "";
-if (argv && argv.length >= 3) {
-    project = argv[2];
-    var game_path = path.resolve(__dirname, '../src/projects/' + project + '/index.ts');
-    if (!fs.existsSync(game_path)) {
-        console.log(chalk.red('  项目「' + project + '」不存在，请检查项目名称。具体名称参见 src/projects/。\n'))
-        return;
-    }
-} else {
-    console.log(chalk.red('  请输入项目名称，具体名称参见 src/projects/。\n'))
-    return;
-}
-
-console.log(chalk.green('  正在开发项目「' + project + '」'));
+console.log(chalk.green('  正在开发项目「' + project_name + '」'));
 
 // add hot-reload related code to entry chunks
-baseWebpackConfig.entry.app = "./src/projects/" + project + "/index.ts";//todo 设置热加载的入口
+baseWebpackConfig.entry.app = "./src/projects/" + project_name + "/index.ts";//todo 设置热加载的入口
 Object.keys(baseWebpackConfig.entry).forEach(function (name) {
     baseWebpackConfig.entry[name] = ['./build/dev-client'].concat(baseWebpackConfig.entry[name])
 })
 module.exports = merge(baseWebpackConfig, {
     module: {
-        rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
+        rules: utils.styleLoaders({sourceMap: config.dev.cssSourceMap})
     },
     // cheap-module-eval-source-map is faster for development
     devtool: '#cheap-module-eval-source-map',
@@ -52,7 +35,7 @@ module.exports = merge(baseWebpackConfig, {
         // https://github.com/ampedandwired/html-webpack-plugin
         new HtmlWebpackPlugin({
             filename: 'index.html',
-            template: path.resolve(__dirname, '../src/projects/' + project + '/index.html'),//'index.html',
+            template: path.resolve(__dirname, '../src/projects/' + project_name + '/index.html'),//'index.html',
             inject: true
         }),
         new FriendlyErrorsPlugin()
