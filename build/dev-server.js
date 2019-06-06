@@ -62,7 +62,8 @@ app.use(hotMiddleware)
 // serve pure static assets
 var staticPath = project.get_static_path()// path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 console.log("\n  资源路径：" + staticPath)
-app.use("/static", express.static(staticPath))
+app.use("/static", express.static(staticPath));
+app.use("/static", express.static(project.get_static_common_path()));
 
 var uri = 'http://localhost:' + port
 

@@ -31,11 +31,13 @@ var projects = project.projects;
  * @param {function} callback 回调结果
  */
 var buildItem = function (item, callback) {
-    var app_dir = "../src/projects/" + item;
-    var app_entry = path.resolve(__dirname, app_dir + '/index.ts');
-    var app_html_entry = path.resolve(__dirname, app_dir + '/index.html');
-    var app_config_entry = path.resolve(__dirname, app_dir + '/config.json');
-    var app_config = project.get_config(item);
+    const app_dir = "../src/projects/" + item;
+    const src_dir = "../src/";
+    const common_dir = src_dir + "common";
+    const app_entry = path.resolve(__dirname, app_dir + '/index.ts');
+    const app_html_entry = path.resolve(__dirname, app_dir + '/index.html');
+    const app_config_entry = path.resolve(__dirname, app_dir + '/config.json');
+    const app_config = project.get_config(item);
 
     if (!fs.existsSync(app_entry)) {
         // throw '  游戏「' + item + '」入口文件 index.js 不存在，请检查项目。\n';
@@ -77,11 +79,23 @@ var buildItem = function (item, callback) {
             chunksSortMode: 'dependency'
         })
     ];
+    //  拷贝项目下的static目录至编译目录
     var static_entry = path.resolve(__dirname, app_dir + '/static');
     if (fs.existsSync(static_entry)) {
         plugins.push(new CopyWebpackPlugin([
             {
                 from: static_entry,
+                to: path.resolve(__dirname, '../dist/' + item + '/static'),
+                ignore: ['.*']
+            }
+        ]));
+    }
+    //  拷贝game-common下的static目录至编译目录
+    var static_common_entry = path.resolve(__dirname, common_dir + '/static');
+    if (fs.existsSync(static_entry)) {
+        plugins.push(new CopyWebpackPlugin([
+            {
+                from: static_common_entry,
                 to: path.resolve(__dirname, '../dist/' + item + '/static'),
                 ignore: ['.*']
             }
@@ -172,3 +186,12 @@ async.waterfall([
         console.log(chalk.red(err));
     }
 });
+
+// rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
+//     if (err) throw err
+//     if (game) {
+//         //  单项时
+//         games = [game];
+//     }
+//     build(games);
+// })

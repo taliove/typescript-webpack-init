@@ -9,17 +9,12 @@ var default_config = {
     "port": 9001
 };
 
-var argv;
-try {
-    argv = JSON.parse(process.env.npm_config_argv).original;
-} catch (ex) {
-    argv = process.argv;
-}
-var project_name = "";
-var projects = [];
+const argv = process.argv;
+let project_name = "";
+let projects = [];
 if (argv && argv.length >= 3) {
     project_name = argv[2];
-    var project_path = path.resolve(__dirname, '../src/projects/' + project_name + '/index.ts');
+    let project_path = path.resolve(__dirname, '../src/projects/' + project_name + '/index.ts');
     if (!fs.existsSync(project_path)) {
         console.log(chalk.red('  项目「' + project_name + '」不存在，请检查项目名称。具体名称参见 src/projects/。\n'))
         return;
@@ -59,4 +54,8 @@ exports.get_config = function (pname) {
 exports.get_static_path = function (pname) {
     var item = pname || project_name;
     return path.resolve(__dirname, '../src/projects/' + item + '/static');
+}
+
+exports.get_static_common_path = function () {
+    return path.resolve(__dirname, '../src/game-common/static');
 }

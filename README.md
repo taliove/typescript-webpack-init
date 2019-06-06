@@ -31,9 +31,15 @@
 
 所有项目都生成在目录`./dist/`下。
 
+目录`src/common/static`下的文件均会生成至`./dist/static`下。
+
 ## 感谢
 
 - [vue](https://github.com/vuejs/vue)
 - [webpack](https://github.com/webpack/webpack)
 
-enjoy it.
+# License
+
+MIT
+
+TALIOVE.COM &copy; 2018~2019 
